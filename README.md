@@ -48,16 +48,22 @@ The pipeline uses `.explain(True)` to display the physical plan of the query exe
 
 ![explain](img/explain.png)
 
-Key optimizations included:
-- Early application of filters (e.g., filtering on `delay > 60` and `origin IN ["JFK", "LGA", "EWR"]` before further transformations).
-- Aggregating at the most granular level before performing joins or complex aggregations.
+To optimize the pipeline, several strategies were employed to enhance performance and reduce resource usage. First, **early application of filters** like `delay > 60` and `origin IN ["JFK", "LGA", "EWR"]` ensured that irrelevant data was excluded as soon as possible, reducing the size of the dataset and thus speeding up subsequent transformations. By filtering early, only the necessary records were passed to the later stages, minimizing memory consumption and improving overall execution time. Additionally, **column pruning** was applied by selecting only the required columns early in the pipeline. This avoided loading unnecessary data into memory, further optimizing the pipeline's efficiency and resource utilization.
+
+To reduce the overhead caused by data shuffling, **local aggregations** were used wherever possible. For instance, the `groupBy` operation was applied after the data was already filtered, which minimized the amount of data shuffled between nodes. This helped Spark perform the aggregation more efficiently by reducing the data volume being processed. Likewise, **Partitioning** is a powerful optimization technique that can improve query performance by ensuring data is evenly distributed across the cluster. By distributing data into appropriate partitions, Spark can process each partition locally, which reduces the need for shuffling during operations like `groupBy`, `join`, or complex aggregations. When the data is partitioned effectively, related data stays co-located on the same node, minimizing the amount of data that needs to be transferred across the network. This results in faster execution times and more efficient use of resources, especially for large datasets where network communication can become a bottleneck. Partitioning can significantly enhance performance by limiting the data shuffle overhead, improving query execution times, and reducing memory usage.
 
 ### Query Details
 ![query_details](img/query_details.png)
 
 ### Performance Bottlenecks
 
-While the pipeline runs efficiently, the main bottleneck identified was the large size of the dataset, which led to increased memory usage and slower query times on larger partitions. Caching frequently used data or intermediate results would help mitigate this.
+While the pipeline performs efficiently, there are a few performance bottlenecks that were identified, especially when dealing with large datasets:
+1. **Large dataset size**: The dataset was replicated to simulate a large dataset, and while this helps test scalability, it also led to **increased memory usage** and slower query times, particularly for larger partitions. The more data Spark has to process, the more resources it requires, and this can slow down operations, especially when performing aggregations.
+   
+2. **Shuffling during groupBy and aggregation**: The `groupBy` operation, which involves aggregations like average delay and count of flights, is an operation that often causes **data shuffling**. Shuffling can be very expensive in terms of both time and memory, particularly when dealing with large datasets. It forces Spark to redistribute data across partitions to perform aggregations or joins, which can lead to delays in query execution.
+
+3. **Intermediate transformations**: Without caching, Spark needs to recompute intermediate transformations every time the same dataset is used. This leads to **repeated computations**, particularly when running multiple actions such as `.count()` and `.show()`. This is not only inefficient but also increases the overall execution time, especially when transformations are complex.
+
 
 ### Caching Optimization
 *Caching is unavailable in Databricks Serverless* 

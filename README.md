@@ -146,3 +146,14 @@ Finally, the selection of features included in the model—namely, **`distance`*
 
 ## Successful Pipeline Execution 
 ![success](img/success.png)
+
+## Key Findings from Analysis
+The pipeline successfully processed flight delay data, which includes information such as flight delays, origin, and destination. Key optimizations were implemented to improve performance, including early filter application, which reduced the dataset size by filtering out flights with delays under 60 minutes and focusing on flights originating from New York airports (JFK, LGA, EWR). By filtering early, unnecessary data was excluded, which helped reduce memory usage and sped up the processing.
+
+The SQL queries provided valuable insights into the data. The first query focused on flights with delays over 120 minutes, filtering and sorting the results by the percentage of such delays. This revealed routes with the highest delays, such as JFK → EGE, with an average delay of 261.62 minutes, and 84.62% of flights delayed over 120 minutes. This query helped identify which routes experience the most significant delays, a crucial finding for airport or airline optimization.
+
+The second query aggregated data by origin airport and counted the number of routes with an average delay greater than 120 minutes. Results showed that JFK had the highest number of high-delay routes (44), followed by EWR (34) and LGA (28). This aggregation helped identify which airports had the highest number of delayed routes, further helping target areas for improvement.
+
+Performance bottlenecks were also identified. The large size of the dataset (simulated by replication) led to increased memory usage and slower query times, especially for larger partitions. Shuffling during groupBy and aggregation operations added to the query time, and repeated computations without caching resulted in inefficiencies when running multiple actions.
+
+In summary, the pipeline effectively processed the data and applied optimizations such as early filtering, column pruning, and local aggregations. SQL queries provided actionable insights into high-delay routes and airports. However, there is still room for improvement in handling large datasets and leveraging caching to speed up repeated operations.

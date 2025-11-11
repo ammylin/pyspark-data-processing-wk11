@@ -28,11 +28,11 @@ The pipeline performs the following steps:
 3. **SQL Queries**:
     - Query 1: Filters flights with more than 30% of delays over 120 minutes and sorts them by the percentage.
 
-    !('query1')[img/sql_query1.png]
+    !(query1)[img/sql_query1.png]
 
     - Query 2: Aggregates by origin and counts the number of routes with an average delay greater than 120 minutes.
 
-    !('query2')[img/sql_query2.png]
+    !(query2)[img/sql_query2.png]
 
 4. **Write Results**: The processed data is written back to a database table.
 
@@ -46,14 +46,14 @@ The pipeline performs the following steps:
 
 The pipeline uses `.explain(True)` to display the physical plan of the query execution. By pushing down filters early in the pipeline and avoiding unnecessary shuffles, the query performance was optimized. Here are the results of `.explain()`, which shows the physical execution plan: 
 
-!('explain')[img/explain.png]
+!(explain)[img/explain.png]
 
 Key optimizations included:
 - Early application of filters (e.g., filtering on `delay > 60` and `origin IN ["JFK", "LGA", "EWR"]` before further transformations).
 - Aggregating at the most granular level before performing joins or complex aggregations.
 
 ### Query Details
-!('query_details')[img/query_details.png]
+!(query_details)[img/query_details.png]
 
 ### Performance Bottlenecks
 
@@ -62,7 +62,7 @@ While the pipeline runs efficiently, the main bottleneck identified was the larg
 ### Caching Optimization
 *Caching is unavailable in Databricks Serverless* 
 
-!('no_cache')[img/no_cache.png]
+!(no_cache)[img/no_cache.png]
 
 In Spark, the `.cache()` function allows you to keep data in memory, preventing Spark from recalculating it every time you access it. Normally, Spark operates lazily, waiting to process data until you execute an action like `.show()` or `.count()`, which means it repeats all steps—such as reading, filtering, and grouping—every time you use the same dataset. However, when you call `.cache()`, Spark saves a copy of that DataFrame in memory after its first computation, allowing it to quickly access the data from memory on subsequent uses instead of redoing all the work. This can significantly speed up your program, especially when running multiple actions or queries on the same data.
 
@@ -120,7 +120,7 @@ A **`Pipeline`** is constructed to sequence various stages, including indexing, 
 The results can be viewed, showing columns for **`delay`**, **`Delayed`**, and **`prediction`**. 
 
 ### Example Output
-!('ml_model')[img/ml_model.png]
+!(ml_model)[img/ml_model.png]
 
 ### Limitations
 
@@ -131,4 +131,4 @@ Moreover, the choice of using only **5 trees** in the **RandomForestClassifier**
 Finally, the selection of features included in the model—namely, **`distance`** and the one-hot encoded **`origin_vec`**—can significantly affect its accuracy. If relevant features are omitted (e.g., additional factors like **`destination`**, **weather conditions**, or **time of day**), or if irrelevant features are included, the model may produce inaccurate predictions. To enhance model performance, a thorough feature selection process, along with exploratory data analysis, should be conducted to identify the most impactful features for predicting flight delays.
 
 ## Successful Pipeline Execution 
-!('success')[img/success.png]
+!(success)[img/success.png]
